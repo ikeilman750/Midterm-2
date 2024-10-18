@@ -1,0 +1,286 @@
+#include <iostream>
+#include <cstdlib> 
+#include <ctime>
+#include <string>
+#include <vector>
+using namespace std;
+
+//The constant variables here are used to define the min/max range for the list
+const int MIN_NR = 10, MAX_NR = 99, MIN_LS = 5, MAX_LS = 20;
+
+
+class DoublyLinkedList {
+
+//Here's the node structure, made to store data and pointers 
+private:
+struct Node {
+int data; //integer balue data, which is the value/identifier of each node
+Node* prev; //sets pointer back 1
+Node* next; //sets pointer forward 1
+
+Node(int val, Node* p = nullptr, Node* n = nullptr) { //Node constructor, with the same 3 things set; value, set pointer back, set pointer forward
+data = val;
+prev = p;
+next = n;
+}
+};
+
+
+
+Node* head; //first node
+Node* tail; //last node
+
+
+public:
+DoublyLinkedList() { head = nullptr; tail = nullptr; } //Constructor that creates an empty list (initializes the head and tail pointers and makes them null.)
+void insert_after(int value, int position) { //Inserts  a new node with whatever "value" is set while calling
+if (position < 0) { //Makes sure nothing bad happens
+cout << "Position must be >= 0." << endl;
+return;
+}
+
+
+Node* newNode = new Node(value); //set your own value to create a new node with
+
+
+if (!head) { //checks if the head is set to null (probably means list is empty?)
+head = tail = newNode; //creates a new node to act as both the new head and tail
+return;
+}
+
+
+Node* temp = head;
+for (int i = 0; i < position && temp; ++i)
+temp = temp->next; //keeps moving temp to the next node, until it reaches said position
+
+
+if (!temp) { //if temp is null, then the position is higher than the number of nodes inside the list, most liekly.
+cout << "Position exceeds list size. Node not inserted.\n";
+delete newNode; // since nothing ccan be inserted, the new node is just deleted
+return;
+}
+
+
+newNode->next = temp->next; // if things go fine, then the newNode should go right after temp
+newNode->prev = temp; //the previous should be temp
+
+
+if (temp->next) 
+temp->next->prev = newNode; //the node after temp should be linked to newNode
+else //here's for if temp was the last node/tail
+tail = newNode; //tail set to newNode
+temp->next = newNode;
+}
+
+
+void delete_val(int value) { //deletes the first node it can find with the given value
+if (!head) return; //if it can't find anything, then nothing should happen
+
+
+Node* temp = head; 
+while (temp && temp->data != value)
+temp = temp->next; //looks for value
+if (!temp) return; //nothing is found
+if (temp->prev) 
+temp->prev->next = temp->next; //skips over temp
+else //if temp is head
+head = temp->next;
+if (temp->next) //temp isnt the last(?)
+temp->next->prev = temp->prev;
+else //if temp is the tail
+tail = temp->prev;
+delete temp; //mo more temp
+}
+
+
+void delete_pos(int pos) { //deletes node at ordered position
+if (!head) {
+cout << "List is empty." << endl; //empty list
+return;
+}
+
+
+if (pos == 1) { //case of the the first node being deleted
+pop_front();
+return;
+}
+
+
+Node* temp = head;
+for (int i = 1; i < pos; i++){ //search to find specified node
+if (!temp) { //if the position doesn't actually exist insde the list
+cout << "Position doesn't exist." << endl;
+return;
+}
+else
+temp = temp->next; //keep moving through
+}
+
+
+if (!temp) { //cant find node
+cout << "Position doesn't exist." << endl;
+return;
+}
+
+
+if (!temp->next) { //case of temp being the final node
+pop_back();
+return;
+}
+
+//the next four lines are to get rid of temp from the list, making sure that the pointers before/after temp no longer point to it.
+Node* tempPrev = temp->prev;
+tempPrev->next = temp->next;
+temp->next->prev = tempPrev;
+delete temp;
+}
+
+
+void push_back(int v) { //add a new node to the end of the list
+Node* newNode = new Node(v);
+if (!tail) //empty list case
+head = tail = newNode; //new node goes to head and tail
+else { //normal case, links new node to tail
+tail->next = newNode;
+newNode->prev = tail;
+tail = newNode;
+}
+}
+
+
+void push_front(int v) { //adds new node to beginning
+Node* newNode = new Node(v);
+if (!head) //empty
+head = tail = newNode; //becomes head an tail
+else { //normal case, 
+newNode->next = head;
+head->prev = newNode;
+head = newNode;
+}
+}
+
+
+void pop_front() { //remove node from front of the list
+if (!head) { //empty case
+cout << "List is empty." << endl;
+return;
+}
+
+Node * temp = head;
+if (head->next) { //more than 1 node inside list
+head = head->next; //move head to the next node
+head->prev = nullptr;
+}
+else //case of only 1 node
+head = tail = nullptr; //list is new empty
+delete temp;
+}
+
+
+void pop_back() { //similar to pop front, but it removes the node from the end of the lsit
+if (!tail) { //empty
+cout << "List is empty." << endl;
+return;
+}
+
+Node * temp = tail;
+if (tail->prev) { //more than 1 node
+tail = tail->prev; //move tail to previous node
+tail->next = nullptr;
+}
+else //onl 1 node
+head = tail = nullptr; //empty list
+delete temp; //bye bye tmemp
+}
+
+// we call this a "destructor"; it annhilates all of the nodes in the list
+~DoublyLinkedList() {
+while (head) { //keep deleting whats in front
+Node* temp = head;
+head = head->next;
+delete temp;
+}
+}
+
+
+void print() { //used to print oiut the entire list
+Node* current = head;
+if (!current) { //empty list case
+cout << "List is empty." << endl;
+return;
+}
+
+
+while (current) { //print out the data inside each node, starting from head and going to tail
+cout << current->data << " ";
+current = current->next;
+}
+cout << endl;
+}
+
+
+void print_reverse() { //does the same thing but prints from tail to head
+Node* current = tail;
+if (!current) {//empty list case
+cout << "List is empty." << endl;
+return;
+}
+
+
+while (current) { //tail to head, prints out the data insdie each node
+cout << current->data << " ";
+current = current->prev;
+}
+cout << endl;
+}
+
+
+
+
+//every other element
+void every_other_element() {
+Node* current = head;
+int index = 0;  // To keep track of whether to print or skip
+while (current) {
+if (index % 2 == 0)
+cout << current->data << " ";  // Print only if index is even
+current = current->next;  // Move to the next node
+index++;
+}
+cout << endl;
+}
+};
+
+vector<string> customer_names = {"Adam", "Alex", "Andy", "Anne", "Aria", "Beau", "Beth", "Bill", "Brad", "Cara",
+                                 "Chad", "Cole", "Dana", "Dave", "Dean", "Drew", "Elle", "Emma", "Eric", "Erik",
+                                 "Evan", "Faye", "Finn", "Gabe", "Gary", "Gina", "Greg", "Gwen", "Hank", "Hope",
+                                 "Iris", "Ivan", "Jack", "Jade", "Jake", "Jane", "Jean", "Jett", "Jill", "Joan",
+                                 "Joel", "John", "Judy", "June", "Kate", "Katy", "Kirk", "Kyle", "Lana", "Lane",
+                                 "Leah", "Lena", "Liam", "Lily", "Lisa", "Lucy", "Luna", "Lyle", "Lynn", "Mark",
+                                 "Mary", "Matt", "Maya", "Mike", "Milo", "Mina", "Neal", "Neil", "Nell", "Nina",
+                                 "Noah", "Noel", "Nora", "Omar", "Otis", "Owen", "Paul", "Pete", "Reed", "Rene",
+                                 "Rita", "Ross", "Ruby", "Ryan", "Sage", "Sara", "Seth", "Tara", "Tess", "Tina",
+                                 "Toby", "Tony", "Troy", "Vera", "Wade", "Will", "Yara", "Zane", "Zara"};
+
+int main() { //main function, used to actually run the code
+
+DoublyLinkedList list;
+
+//Demonstrating  list operations
+list.push_back(10);
+list.push_back(20);
+list.push_back(30);
+list.push_back(40);
+list.push_back(50);
+
+cout << "Full list: ";
+list.print();
+
+cout << "Every other element: ";
+list.every_other_element();
+
+return 0;
+}
+
+
+//hi hi hi hi hi hi hi hi hi h i
